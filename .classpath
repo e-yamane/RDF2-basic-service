@@ -1,0 +1,16 @@
+<classpath>
+  <classpathentry output="target\scala-2.9.1\classes" path="src\main\scala" kind="src"></classpathentry>
+  <classpathentry output="target\scala-2.9.1\classes" path="src\main\java" kind="src"></classpathentry>
+  <classpathentry output="target\scala-2.9.1\test-classes" path="src\test\scala" kind="src"></classpathentry>
+  <classpathentry output="target\scala-2.9.1\test-classes" path="src\test\java" kind="src"></classpathentry>
+  <classpathentry path="org.scala-ide.sdt.launching.SCALA_CONTAINER" kind="con"></classpathentry>
+  <classpathentry path="C:\Users\e-yamane\.ivy2\cache\jp.rough_diamond\rdf2-di_2.9.1\jars\rdf2-di_2.9.1-2.0.1.jar" kind="lib"></classpathentry>
+  <classpathentry path="C:\Users\e-yamane\.ivy2\cache\org.slf4j\jcl-over-slf4j\jars\jcl-over-slf4j-1.6.2.jar" kind="lib"></classpathentry>
+  <classpathentry path="C:\Users\e-yamane\.ivy2\cache\org.slf4j\slf4j-api\jars\slf4j-api-1.6.2.jar" kind="lib"></classpathentry>
+  <classpathentry path="C:\Users\e-yamane\.ivy2\cache\org.scalatest\scalatest_2.9.1\jars\scalatest_2.9.1-1.7.1.jar" kind="lib"></classpathentry>
+  <classpathentry path="C:\Users\e-yamane\.ivy2\cache\com.novocode\junit-interface\jars\junit-interface-0.8.jar" kind="lib"></classpathentry>
+  <classpathentry path="C:\Users\e-yamane\.ivy2\cache\junit\junit\jars\junit-4.8.2.jar" kind="lib"></classpathentry>
+  <classpathentry path="C:\Users\e-yamane\.ivy2\cache\org.scala-tools.testing\test-interface\jars\test-interface-0.5.jar" kind="lib"></classpathentry>
+  <classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER" kind="con"></classpathentry>
+  <classpathentry path="bin" kind="output"></classpathentry>
+</classpath>
