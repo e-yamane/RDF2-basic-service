@@ -30,6 +30,19 @@
     <orderEntry type="library" name="org.slf4j_slf4j-api_1.6.2" level="project" />
     <orderEntry type="library" name="jp.rough_diamond_rdf2-resource_2.9.1_2.0.1" level="project" />
     <orderEntry type="library" name="org.mortbay.jetty_servlet-api_3.0.20100224" level="project" />
+    <orderEntry type="library" name="jp.rough_diamond_rdf2-service-locator_2.9.1_2.0.1" level="project" />
+    <orderEntry type="library" name="jp.rough_diamond_rdf2-cache_2.9.1_2.0.1" level="project" />
+    <orderEntry type="library" name="jp.rough_diamond_rdf2-service-db_2.9.1_2.0.1" level="project" />
+    <orderEntry type="library" name="org.springframework_spring-aop_3.1.1.RELEASE" level="project" />
+    <orderEntry type="library" name="aopalliance_aopalliance_1.0" level="project" />
+    <orderEntry type="library" name="org.springframework_spring-asm_3.1.1.RELEASE" level="project" />
+    <orderEntry type="library" name="org.springframework_spring-beans_3.1.1.RELEASE" level="project" />
+    <orderEntry type="library" name="org.springframework_spring-core_3.1.1.RELEASE" level="project" />
+    <orderEntry type="library" name="commons-logging_commons-logging_1.1.1" level="project" />
+    <orderEntry type="library" name="cglib_cglib_2.2.2" level="project" />
+    <orderEntry type="library" name="asm_asm_3.3.1" level="project" />
+    <orderEntry type="library" name="jp.rough_diamond_rdf2-util-beans_2.9.1_2.0.1" level="project" />
+    <orderEntry type="library" name="commons-beanutils_commons-beanutils_1.8.3" level="project" />
     <orderEntry type="library" scope="TEST" name="org.scalatest_scalatest_2.9.1_1.7.1" level="project" />
     <orderEntry type="library" scope="TEST" name="com.novocode_junit-interface_0.8" level="project" />
     <orderEntry type="library" scope="TEST" name="junit_junit_4.8.2" level="project" />
