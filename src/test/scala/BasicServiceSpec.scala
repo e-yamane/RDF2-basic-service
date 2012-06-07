@@ -1,9 +1,13 @@
 import java.io.Serializable
 import java.lang.Long
 import java.util.{Arrays, Map, ArrayList, List}
+import jp.rough_diamond.commons.di.DIContainerTestingHelper
+import jp.rough_diamond.commons.di.DIContainerTestingHelper.DIHook
 import jp.rough_diamond.commons.extractor.{FreeFormat, ExtractValue, Extractor}
+import jp.rough_diamond.commons.resource.{ResourceManager, LocaleControllerByThreadLocal, LocaleController}
+import jp.rough_diamond.commons.service.annotation.{MaxCharLength, MaxLength, NotNull}
 import jp.rough_diamond.commons.service.BasicService.RecordLock
-import jp.rough_diamond.commons.service.{FindResult, BasicService}
+import jp.rough_diamond.commons.service.{WhenVerifier, FindResult, BasicService}
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.{BeforeAndAfter, FunSpec}
 
@@ -16,6 +20,16 @@ import org.scalatest.{BeforeAndAfter, FunSpec}
  */
 
 class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
+    import DIContainerTestingHelper._
+
+    before {
+        init()
+        attach(diListener)
+    }
+
+    after {
+        detach(diListener)
+    }
 
     describe("BasicServiceの仕様") {
         it("findByPKの省略値[isNoCache=false、lockはNONE]であること") {
@@ -194,6 +208,139 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
             service.deleteByPK(classOf[String], 2)
             service.deleteObjects should be (Array("hoge"))
         }
+
+        describe("Verifierの仕様") {
+            describe("単項目チェックの仕様") {
+                it("getterに@NotNullアノテーションが付与されているプロパティは省略不能である事") {
+                    val bean = new ValidateTestBean
+                    val service = new BasicServiceExt
+
+                    var msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    msg.get("reqInfo").size() should be (1)
+                    msg.get("reqInfo").get(0).getKey should be ("errors.required")
+                    msg.get("reqInfo").get(0).values should be (Array("required Info"))
+
+                    bean.reqInfo = ""
+                    msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+
+                    bean.reqInfo = "x"
+                    msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (false)
+                }
+
+                it("getterに@MaxLengthアノテーションが付与されているプロパティはその長さを超えない事") {
+                    val bean = new ValidateTestBean
+                    val service = new BasicServiceExt
+
+                    bean.reqInfo = "x"
+
+                    bean.name = "12345"
+                    var msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (false)
+
+                    bean.name = "123456"
+                    msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    msg.get("name").size() should be (1)
+                    msg.get("name").get(0).getKey should be ("errors.maxlength")
+                    msg.get("name").get(0).values should be (Array("BeanName", "5"))
+
+                    bean.name = "12345"
+
+                    bean.code = 99
+                    msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (false)
+
+                    bean.code = 100
+                    msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    msg.hasError should be (true)
+                    msg.get("code").size() should be (1)
+                    msg.get("code").get(0).getKey should be ("errors.maxlength")
+                    msg.get("code").get(0).values should be (Array("BeanCode", "2"))
+                }
+                it("数値で負数の場合の@MaxLengthの挙動は直す方が良い")(pending)
+
+                it("getterに@MaxCharLengthアノテーションが付与されているプロパティはその長さを超えない事") {
+                    val bean = new ValidateTestBean
+                    val service = new BasicServiceExt
+
+                    bean.reqInfo = "x"
+
+                    bean.charLength = "あ"
+                    var msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (false)
+
+                    bean.charLength = "あい"
+                    msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    msg.get("charLength").size() should be (1)
+                    msg.get("charLength").get(0).getKey should be ("errors.maxcharlength")
+                    msg.get("charLength").get(0).values should be (Array("length check", "1"))
+                }
+
+                it("MaxLengthとMaxCharLength両方違反した場合はMaxCharLengthのエラーを優先する事") {
+                    val bean = new ValidateTestBean
+                    val service = new BasicServiceExt
+
+                    bean.reqInfo = "x"
+
+                    bean.charLength = "あいうえお"
+                    var msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    msg.get("charLength").size() should be (1)
+                    msg.get("charLength").get(0).getKey should be ("errors.maxcharlength")
+                }
+                it("複数プロパティでエラーが生じた場合は全て含まれている事") {
+                    val bean = new ValidateTestBean
+                    val service = new BasicServiceExt
+
+                    bean.name = "123456"
+                    bean.code = 100
+                    bean.charLength = "あいうえお"
+                    val msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    msg.get("reqInfo").size() should be (1)
+                    msg.get("reqInfo").get(0).getKey should be ("errors.required")
+                    msg.get("name").size() should be (1)
+                    msg.get("name").get(0).getKey should be ("errors.maxlength")
+                    msg.get("code").size() should be (1)
+                    msg.get("code").get(0).getKey should be ("errors.maxlength")
+                    msg.get("charLength").size() should be (1)
+                    msg.get("charLength").get(0).getKey should be ("errors.maxcharlength")
+                }
+            }
+        }
+    }
+
+    class ValidateTestBean {
+        var name : String = null
+        var code : Integer = null
+        var reqInfo : String = null
+        var charLength : String = null
+
+        @MaxLength(length = 5, property = "name")
+        def getName : String = {
+            name
+        }
+
+        @MaxLength(length=2, property="code")
+        def getCode : Integer = {
+            code
+        }
+
+        @MaxCharLength(length = 1, property="charLength")
+        @MaxLength(length=6, property="charLength")
+        def getCharLength = {
+            charLength
+        }
+
+        @NotNull(property = "reqInfo")
+        def getReqInfo : String = {
+            reqInfo
+        }
     }
 
     class BasicServiceExt extends BasicService {
@@ -232,5 +379,19 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
         def clearCache(o: Any) :Unit = {}
 
         protected def getProxyChecker = null
+    }
+
+    object diListener extends DIHook {
+        lazy val lc = new LocaleControllerByThreadLocal
+
+        def getObject[T](`type`: Class[T], key: Any) : T = {
+            key match {
+                case BasicService.CHARSET_KEY => "UTF-8".asInstanceOf[T]
+                case BasicService.PERSISTENCE_EVENT_LISTENERS => new ArrayList[Object].asInstanceOf[T]
+                case LocaleController.LOCALE_CONTROLLER_KEY => lc.asInstanceOf[T]
+                case ResourceManager.RESOURCE_NAME_KEY => "a".asInstanceOf[T]
+                case _ => null.asInstanceOf[T]
+            }
+        }
     }
 }

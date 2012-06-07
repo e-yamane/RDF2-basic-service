@@ -18,13 +18,7 @@ libraryDependencies +=  "jp.rough_diamond"      %%  "rdf2-service-db"       % "2
 
 libraryDependencies +=  "jp.rough_diamond"      %%  "rdf2-util-beans"       % "2.0.1"
 
-//libraryDependencies +=  "org.springframework"   %   "spring-aop"            % "3.1.1.RELEASE"
-
-//libraryDependencies +=  "cglib"                 %   "cglib"                 % "2.2.2"
-
-//libraryDependencies +=  "org.javassist"         %     "javassist"             % "3.16.1-GA"
-
-//libraryDependencies +=  "com.google.guava"      %     "guava"                 % "11.0.2"
+libraryDependencies +=  "jp.rough_diamond"      %%  "rdf2-di-testing"       % "2.0.1"   % "test"
 
 libraryDependencies +=  "org.scalatest"         %%  "scalatest"             % "1.7.1"   % "test"
 
