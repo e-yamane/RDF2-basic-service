@@ -5,7 +5,7 @@ import jp.rough_diamond.commons.di.DIContainerTestingHelper
 import jp.rough_diamond.commons.di.DIContainerTestingHelper.DIHook
 import jp.rough_diamond.commons.extractor.{FreeFormat, ExtractValue, Extractor}
 import jp.rough_diamond.commons.resource.{ResourceManager, LocaleControllerByThreadLocal, LocaleController}
-import jp.rough_diamond.commons.service.annotation.{MaxCharLength, MaxLength, NotNull}
+import jp.rough_diamond.commons.service.annotation.{NestedComponent, MaxCharLength, MaxLength, NotNull}
 import jp.rough_diamond.commons.service.BasicService.RecordLock
 import jp.rough_diamond.commons.service.{WhenVerifier, FindResult, BasicService}
 import org.scalatest.matchers.ShouldMatchers
@@ -217,9 +217,9 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
 
                     var msg = service.validate(bean, WhenVerifier.INSERT)
                     msg.hasError should be (true)
-                    msg.get("reqInfo").size() should be (1)
-                    msg.get("reqInfo").get(0).getKey should be ("errors.required")
-                    msg.get("reqInfo").get(0).values should be (Array("required Info"))
+                    msg.get("Z.reqInfo").size() should be (1)
+                    msg.get("Z.reqInfo").get(0).getKey should be ("errors.required")
+                    msg.get("Z.reqInfo").get(0).values should be (Array("required Info"))
 
                     bean.reqInfo = ""
                     msg = service.validate(bean, WhenVerifier.INSERT)
@@ -243,9 +243,9 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
                     bean.name = "123456"
                     msg = service.validate(bean, WhenVerifier.INSERT)
                     msg.hasError should be (true)
-                    msg.get("name").size() should be (1)
-                    msg.get("name").get(0).getKey should be ("errors.maxlength")
-                    msg.get("name").get(0).values should be (Array("BeanName", "5"))
+                    msg.get("Z.name").size() should be (1)
+                    msg.get("Z.name").get(0).getKey should be ("errors.maxlength")
+                    msg.get("Z.name").get(0).values should be (Array("BeanName", "5"))
 
                     bean.name = "12345"
 
@@ -257,9 +257,9 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
                     msg = service.validate(bean, WhenVerifier.INSERT)
                     msg.hasError should be (true)
                     msg.hasError should be (true)
-                    msg.get("code").size() should be (1)
-                    msg.get("code").get(0).getKey should be ("errors.maxlength")
-                    msg.get("code").get(0).values should be (Array("BeanCode", "2"))
+                    msg.get("Z.code").size() should be (1)
+                    msg.get("Z.code").get(0).getKey should be ("errors.maxlength")
+                    msg.get("Z.code").get(0).values should be (Array("BeanCode", "2"))
                 }
                 it("数値で負数の場合の@MaxLengthの挙動は直す方が良い")(pending)
 
@@ -276,9 +276,9 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
                     bean.charLength = "あい"
                     msg = service.validate(bean, WhenVerifier.INSERT)
                     msg.hasError should be (true)
-                    msg.get("charLength").size() should be (1)
-                    msg.get("charLength").get(0).getKey should be ("errors.maxcharlength")
-                    msg.get("charLength").get(0).values should be (Array("length check", "1"))
+                    msg.get("Z.charLength").size() should be (1)
+                    msg.get("Z.charLength").get(0).getKey should be ("errors.maxcharlength")
+                    msg.get("Z.charLength").get(0).values should be (Array("length check", "1"))
                 }
 
                 it("MaxLengthとMaxCharLength両方違反した場合はMaxCharLengthのエラーを優先する事") {
@@ -290,8 +290,8 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
                     bean.charLength = "あいうえお"
                     var msg = service.validate(bean, WhenVerifier.INSERT)
                     msg.hasError should be (true)
-                    msg.get("charLength").size() should be (1)
-                    msg.get("charLength").get(0).getKey should be ("errors.maxcharlength")
+                    msg.get("Z.charLength").size() should be (1)
+                    msg.get("Z.charLength").get(0).getKey should be ("errors.maxcharlength")
                 }
                 it("複数プロパティでエラーが生じた場合は全て含まれている事") {
                     val bean = new ValidateTestBean
@@ -302,14 +302,37 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
                     bean.charLength = "あいうえお"
                     val msg = service.validate(bean, WhenVerifier.INSERT)
                     msg.hasError should be (true)
-                    msg.get("reqInfo").size() should be (1)
-                    msg.get("reqInfo").get(0).getKey should be ("errors.required")
-                    msg.get("name").size() should be (1)
-                    msg.get("name").get(0).getKey should be ("errors.maxlength")
-                    msg.get("code").size() should be (1)
-                    msg.get("code").get(0).getKey should be ("errors.maxlength")
-                    msg.get("charLength").size() should be (1)
-                    msg.get("charLength").get(0).getKey should be ("errors.maxcharlength")
+                    msg.get("Z.reqInfo").size() should be (1)
+                    msg.get("Z.reqInfo").get(0).getKey should be ("errors.required")
+                    msg.get("Z.name").size() should be (1)
+                    msg.get("Z.name").get(0).getKey should be ("errors.maxlength")
+                    msg.get("Z.code").size() should be (1)
+                    msg.get("Z.code").get(0).getKey should be ("errors.maxlength")
+                    msg.get("Z.charLength").size() should be (1)
+                    msg.get("Z.charLength").get(0).getKey should be ("errors.maxcharlength")
+                }
+                it("NestedComponentとNotNullチェックが混在している場合NotNullチェックが優先される事") {
+                    val bean = new ValidateTestBeanOuter
+                    val service = new BasicServiceExt
+
+                    val msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    msg.get("Y.bean").size() should be (1)
+                    msg.get("Y.bean").get(0).getKey should be ("errors.required")
+                }
+                it("NestedComponentが付与されているプロパティは再帰的に検証できる事") {
+                    val bean = new ValidateTestBeanOuter
+                    val service = new BasicServiceExt
+                    bean.bean = new ValidateTestBean
+                    bean.name = "1234"
+
+                    val msg = service.validate(bean, WhenVerifier.INSERT)
+                    msg.hasError should be (true)
+                    println(msg.getProperties)
+                    msg.get("Y.bean.reqInfo").size() should be (1)
+                    msg.get("Y.bean.reqInfo").get(0).getKey should be ("errors.required")
+                    msg.get("Y.name").size() should be (1)
+                    msg.get("Y.name").get(0).getKey should be ("errors.maxlength")
                 }
             }
         }
@@ -321,25 +344,41 @@ class BasicServiceSpec extends FunSpec with ShouldMatchers with BeforeAndAfter {
         var reqInfo : String = null
         var charLength : String = null
 
-        @MaxLength(length = 5, property = "name")
+        @MaxLength(length = 5, property = "Z.name")
         def getName : String = {
             name
         }
 
-        @MaxLength(length=2, property="code")
+        @MaxLength(length=2, property="Z.code")
         def getCode : Integer = {
             code
         }
 
-        @MaxCharLength(length = 1, property="charLength")
-        @MaxLength(length=6, property="charLength")
+        @MaxCharLength(length = 1, property="Z.charLength")
+        @MaxLength(length=6, property="Z.charLength")
         def getCharLength = {
             charLength
         }
 
-        @NotNull(property = "reqInfo")
+        @NotNull(property = "Z.reqInfo")
         def getReqInfo : String = {
             reqInfo
+        }
+    }
+
+    class ValidateTestBeanOuter {
+        var bean : ValidateTestBean = null
+        var name : String = null
+
+        @NotNull(property = "Y.bean")
+        @NestedComponent(property = "Y.bean")
+        def getBean = {
+            bean
+        }
+
+        @MaxLength(length = 3, property = "Y.name")
+        def getName : String = {
+            name
         }
     }
 
